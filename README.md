@@ -1,34 +1,29 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Convex Buffered State
 
-## Getting Started
+Simple project using React, Next.js, TailwindCSS, and Convex. Simple full-stack
+app that is a news feed of "scary stories" ala twitter.
 
-First, run the development server:
+Has one twist: contains a `useBufferedState` hook that demonstrates a way
+to delay reactive updates until the user is ready.
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+## Running
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**1. Install all dependencies**
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+    $ npm i
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+**2. Set up your Convex deployment**
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+    $ npx convex login # Create convex account
+    $ npx convex init # Create new convex project / deployment
+    $ npx convex push # Push the functions in the convex/ directory to your deployment
 
-## Learn More
+**3. Run the application**
 
-To learn more about Next.js, take a look at the following resources:
+    $ npm run dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**4. Use it!**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Browse to http://localhost:3000/ and make some _super scary_ stories!
+Observe how the buffered state abstraction is used to delay reflowing the
+story list until the readers are ready.
