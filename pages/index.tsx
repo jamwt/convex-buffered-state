@@ -1,14 +1,52 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { useRef, useState } from "react";
+import { buffer } from "stream/consumers";
 import { Story } from "../convex/common";
 import { useMutation, useQuery } from "../convex/_generated/react";
 
+function useBufferedState<T, D>(
+  upstream: T | null,
+  differ: (oldVal: T | null, newVal: T) => D
+): {
+  currentVal: T | null;
+  diff: D | null;
+  sync: () => void;
+} {
+  const [currentVal, setCurrentVal] = useState(upstream);
+  var upstreamRef = useRef(upstream);
+  upstreamRef.current = upstream;
+  const doSync = () => {
+    console.log("sync!");
+    setCurrentVal(upstreamRef.current);
+  };
+
+  return {
+    currentVal,
+    diff: upstream ? differ(currentVal, upstream) : null,
+    sync: doSync,
+  };
+}
+
 const Home: NextPage = () => {
-  const stories = useQuery("getStories");
+  const serverStories = useQuery("getStories") ?? null;
+  const storyDiffer = (oldVal: Story[] | null, newVal: Story[]) => {
+    return newVal.length - (oldVal?.length ?? 0);
+  };
+  const buffered = useBufferedState<Story[], number>(
+    serverStories,
+    storyDiffer
+  );
+  const stories = buffered.currentVal;
+  const diff = buffered.diff;
+  const doSync = () => {
+    console.log("Sync requested");
+    buffered.sync();
+  };
   const addNewsStory = useMutation("addNewsStory");
 
-  const submitStory = (_event: Event) => {
+  const submitStory = (_event: any) => {
     const authorEl = document.querySelector("#author")! as HTMLInputElement;
     const bodyEl = document.querySelector("#body")! as HTMLTextAreaElement;
     const story: Story = {
@@ -18,7 +56,20 @@ const Home: NextPage = () => {
     bodyEl.value = "";
     addNewsStory(story);
   };
-  if (stories === undefined) {
+
+  if (diff) {
+    var diffEl = (
+      <span
+        className="p-1 text-blue-600 cursor-pointer"
+        onClick={() => doSync()}
+      >
+        (Click to load {diff} new stories...)
+      </span>
+    );
+  } else {
+    var diffEl = <></>;
+  }
+  if (stories === null && diff === null) {
     return <div>Loading...</div>;
   }
   return (
@@ -27,7 +78,8 @@ const Home: NextPage = () => {
       <div className="flex flex-row">
         <div className="flex flex-col basis-2/3 p-10">
           <div className="rounded bg-yellow-100 p-4 font-bold mb-8">
-            Showing {stories.length} stories.
+            Showing {stories?.length ?? 0} stories.
+            {diffEl}
           </div>
           {stories?.map((story, i) => (
             <StoryItem key={i} story={story} />
